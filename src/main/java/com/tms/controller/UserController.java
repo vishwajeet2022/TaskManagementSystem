@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +28,12 @@ public class UserController {
 	@Autowired
 	TMSApplicationService tmsApplicationService;
 
+	@Autowired
+	AuthenticationManager authenticationManager;
+
+	@Autowired
+	PasswordEncoder passwordEncoder;
+
 	@GetMapping("/users")
 	public ResponseEntity<?> getAllUsers() {
 		List<TMSUser> allUsers = tmsApplicationService.getAllUsers();
@@ -35,12 +43,7 @@ public class UserController {
 			throw new BusinessException(List.of(new ErrorModel(HttpStatus.NOT_FOUND.value(), "USER NOT FOUND")));
 	}
 
-	@PostMapping("/users")
-	public ResponseEntity<?> createuser(@Valid @RequestBody(required = true) TMSUser tmsUser) {
-		TMSUser user = tmsApplicationService.createUser(tmsUser);
-		return new ResponseEntity<>(user, HttpStatus.CREATED);
-	}
-
+	
 	@GetMapping("/users/{userId}")
 	public ResponseEntity<?> getUser(@PathVariable(required = true) Long userId) {
 		TMSUser userDetails = tmsApplicationService.getUser(userId);
@@ -52,14 +55,16 @@ public class UserController {
 
 	@DeleteMapping("/users/{userId}")
 	public ResponseEntity<?> deleteUser(@PathVariable(required = true) Long userId) {
-		tmsApplicationService.deleteUser (userId);
+		tmsApplicationService.deleteUser(userId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@PutMapping("users/{userId}")
 	public ResponseEntity<?> updateUser(@PathVariable(required = true) Long userId,
 			@Valid @RequestBody(required = true) TMSUser user) {
-		TMSUser updatedUser = tmsApplicationService.updateUser(userId,user);
+		if (!StringUtils.hasText(user.getPassword()))
+			throw new BusinessException(List.of(new ErrorModel(HttpStatus.BAD_REQUEST.value(), "Pasword is Required")));
+		TMSUser updatedUser = tmsApplicationService.updateUser(userId, user);
 		return new ResponseEntity<>(updatedUser, HttpStatus.OK);
 	}
 }

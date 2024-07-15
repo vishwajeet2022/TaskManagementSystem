@@ -22,7 +22,10 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -47,13 +50,17 @@ public class TMSUser extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
-	@ManyToMany()
+	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_authorties_map", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "userId"), inverseJoinColumns = @JoinColumn(name = "authority_id", referencedColumnName = "authorityId"))
 	private List<Authority> authorities = new ArrayList<>();
 
 	@JsonManagedReference
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "taskOwner")
 	private List<Task> tasks = new ArrayList<>();
+
+	
+	@Column(nullable = false)
+	private String password;
 
 	public enum Role {
 		ROLE_USER, ROLE_ADMIN
@@ -96,7 +103,6 @@ public class TMSUser extends BaseEntity {
 		return userId;
 	}
 
-
 	public String getName() {
 		return name;
 	}
@@ -135,6 +141,14 @@ public class TMSUser extends BaseEntity {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	};
 
 }

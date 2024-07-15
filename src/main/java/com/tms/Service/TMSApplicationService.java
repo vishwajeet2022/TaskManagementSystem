@@ -6,8 +6,11 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.tms.exception.BusinessException;
 import com.tms.exception.ErrorModel;
@@ -28,6 +31,8 @@ public class TMSApplicationService {
 	IUserRepository userRepository;
 	@Autowired
 	ITaskRepository taskRepository;
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	@Transactional
 	public Task createTask(Task taskTo) {
@@ -74,8 +79,17 @@ public class TMSApplicationService {
 		return task;
 	}
 
-	public List<Task> getAllTask() {
+	public List<Task> getAllTasks() {
 		return taskRepository.findAll();
+	}
+
+	public List<Task> getAllTaskForUser(String email) {
+		List<Task> tasks=null;
+		TMSUser user = getUserByEmail(email);
+		if(user!=null) {
+			tasks=user.getTasks();
+		}
+		return tasks;
 	}
 
 	@Transactional
@@ -143,8 +157,8 @@ public class TMSApplicationService {
 	public TMSUser createUser(TMSUser user) {
 		validateUserEmail(user);
 		validateUserAuthorities(user);
-		//user.setUserId(null);
-		 userRepository.save(user);
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
+		userRepository.save(user);
 		return user;
 	}
 
@@ -177,10 +191,21 @@ public class TMSApplicationService {
 		List<ErrorModel> errors = new ArrayList<>();
 		if (userToBeUpdated != null) {
 			if (!userToBeUpdated.getEmail().equals(userInput.getEmail())) {
-				isChanged = true;
 				validateUserEmail(userInput);
 				userToBeUpdated.setEmail(userInput.getEmail());
+				isChanged = true;
 			}
+			if (!userToBeUpdated.getName().equals(userInput.getName())) {
+				userToBeUpdated.setName(userInput.getName());
+				isChanged = true;
+			}
+
+			if (!passwordEncoder.matches(userInput.getPassword(),
+					(String) SecurityContextHolder.getContext().getAuthentication().getCredentials())) {
+				userToBeUpdated.setPassword(passwordEncoder.encode(userToBeUpdated.getPassword()));
+				isChanged = true;
+			}
+
 			if (isChanged == false) {
 				errors.add(new ErrorModel(HttpStatus.BAD_REQUEST.value(), IErrorMessageConstants.NO_CHANGE_REQUESTED));
 			}
@@ -193,10 +218,20 @@ public class TMSApplicationService {
 	public void deleteUser(Long userId) {
 
 		TMSUser user = this.getUser(userId);
-		if(user!=null)
+		if (user != null)
 			userRepository.delete(user);
 		else
-			throw new BusinessException(List.of(new ErrorModel(HttpStatus.NOT_FOUND.value(), IErrorMessageConstants.USER_NOT_FOUND)));
+			throw new BusinessException(
+					List.of(new ErrorModel(HttpStatus.NOT_FOUND.value(), IErrorMessageConstants.USER_NOT_FOUND)));
+	}
+
+	public TMSUser getUserByEmail(String email) {
+		Optional<TMSUser> user = userRepository.findByEmail(email);
+		if (user.isPresent())
+			return user.get();
+		else
+			return null;
+
 	}
 
 }

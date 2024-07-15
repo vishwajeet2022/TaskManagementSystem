@@ -28,7 +28,7 @@ public class TaskController {
 
 	@GetMapping("/tasks")
 	public ResponseEntity<?> getAllTasks() {
-		List<Task> allTasks = tmsApplicationService.getAllTask();
+		List<Task> allTasks = tmsApplicationService.getAllTasks();
 		if (allTasks != null && !allTasks.isEmpty())
 			return new ResponseEntity<>(allTasks, HttpStatus.FOUND);
 		else
@@ -55,7 +55,7 @@ public class TaskController {
 	}
 
 	@PutMapping("/tasks/{taskId}")
-	public ResponseEntity<?> updateTask( @PathVariable(required = true) Long taskId,
+	public ResponseEntity<?> updateTask(@PathVariable(required = true) Long taskId,
 			@Valid @RequestBody(required = true) Task task) {
 		Task updatedTask = tmsApplicationService.updateTaskDetails(taskId, task);
 		return new ResponseEntity<>(updatedTask, HttpStatus.OK);
