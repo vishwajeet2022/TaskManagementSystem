@@ -22,10 +22,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -45,7 +42,6 @@ public class TMSUser extends BaseEntity {
 	@Column(nullable = false, unique = true)
 	private String email;
 
-	@NotNull(message = "Role Cannot Be Null")
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private Role role;
@@ -54,7 +50,8 @@ public class TMSUser extends BaseEntity {
 	@JoinTable(name = "user_authorties_map", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "userId"), inverseJoinColumns = @JoinColumn(name = "authority_id", referencedColumnName = "authorityId"))
 	private List<Authority> authorities = new ArrayList<>();
 
-	@JsonManagedReference
+	//@JsonManagedReference
+	@JsonIgnore
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "taskOwner")
 	private List<Task> tasks = new ArrayList<>();
 

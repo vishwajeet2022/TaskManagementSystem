@@ -42,7 +42,7 @@ public class Task extends BaseEntity {
 	@Column(nullable = false)
 	private TaskStatus taskStatus;
 
-	@JsonBackReference
+	//@JsonBackReference
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "userId")
 	private TMSUser taskOwner;

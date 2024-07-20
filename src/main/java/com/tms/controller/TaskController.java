@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,16 +28,14 @@ public class TaskController {
 	TMSApplicationService tmsApplicationService;
 
 	@GetMapping("/tasks")
+	@PreAuthorize("hasAuthority('READ_TASK')")
 	public ResponseEntity<?> getAllTasks() {
 		List<Task> allTasks = tmsApplicationService.getAllTasks();
-		if (allTasks != null && !allTasks.isEmpty())
-			return new ResponseEntity<>(allTasks, HttpStatus.FOUND);
-		else
-			throw new BusinessException(
-					List.of(new ErrorModel(HttpStatus.NOT_FOUND.value(), IErrorMessageConstants.TASK_NOT_FOUND)));
+		return new ResponseEntity<>(allTasks, HttpStatus.FOUND);
 	}
 
 	@GetMapping("/tasks/{taskId}")
+	@PreAuthorize("hasAuthority('READ_TASK')")
 	public ResponseEntity<?> getTask(@PathVariable(required = true) Long taskId) {
 		Task task = tmsApplicationService.getTask(taskId);
 		if (task != null && task.getTaskId() > 0)
@@ -47,6 +46,7 @@ public class TaskController {
 	}
 
 	@PostMapping("/tasks")
+	@PreAuthorize("hasAuthority('CREATE_TASK')")
 	public ResponseEntity<?> createTask(@Valid @RequestBody(required = true) Task task) {
 		ResponseEntity<Object> response = null;
 		tmsApplicationService.createTask(task);
@@ -55,6 +55,7 @@ public class TaskController {
 	}
 
 	@PutMapping("/tasks/{taskId}")
+	@PreAuthorize("hasAuthority('UPDATE_TASK')")
 	public ResponseEntity<?> updateTask(@PathVariable(required = true) Long taskId,
 			@Valid @RequestBody(required = true) Task task) {
 		Task updatedTask = tmsApplicationService.updateTaskDetails(taskId, task);
@@ -62,6 +63,7 @@ public class TaskController {
 	}
 
 	@DeleteMapping("/tasks/{taskId}")
+	@PreAuthorize("hasAuthority('DELETE_TASK')")
 	public ResponseEntity<?> deleteTask(@PathVariable(required = true) Long taskId) {
 		tmsApplicationService.deleteTask(taskId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);

@@ -11,6 +11,11 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import com.tms.model.Authority;
+import com.tms.model.Authority.AuthorityCode;
+import com.tms.model.TMSUser.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -40,8 +45,23 @@ public class JWTUtility implements Serializable {
 		return getClaimFromToken(token, Claims::getSubject);
 	}
 
-	public String getAuthoritesFromToken(String token) {
-		return (String) getAllClaimsFromToken(token).get("authorities");
+	public String getCommaSeparatedAuthoritesFromToken(String token) {
+		String authoritySting = (String) getAllClaimsFromToken(token).get("authorities");
+		String authorities = "";
+		for (AuthorityCode authCode : Authority.AuthorityCode.values()) {
+			if (authoritySting.contains(authCode.toString())) {
+				authorities = authorities + authCode.toString() + ",";
+			}
+		}
+		for (Role role : Role.values()) {
+			if (authoritySting.contains(role.toString())) {
+				authorities = authorities + role.toString() + ",";
+			}
+		}
+
+		if (StringUtils.hasText(authorities))
+			authorities = authorities.substring(0, authorities.length() - 1);
+		return authorities;
 	}
 
 	// retrieve expiration date from jwt token
@@ -66,7 +86,7 @@ public class JWTUtility implements Serializable {
 	}
 
 	public String doGenerateToken(String userName, Collection<? extends GrantedAuthority> authorties) {
-		return Jwts.builder().issuer("TMS").subject("JWT Token").claim("username", userName)
+		return Jwts.builder().issuer("tms.com").subject(userName)
 				.claim("authorities", this.populateAuthoritiesInJWT(authorties)).issuedAt(new Date())
 				.expiration(new Date(new Date().getTime() + expiration)).signWith(secretKey).compact();
 	}

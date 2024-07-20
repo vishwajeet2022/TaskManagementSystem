@@ -35,8 +35,8 @@ public class JWTValidationFilter extends OncePerRequestFilter {
 			String userName = jwtUtility.getUsernameFromToken(jwt);
 			if (jwtUtility.validateToken(jwt, userName)) {
 
-				Authentication authentication = new UsernamePasswordAuthenticationToken(userName, null,
-						AuthorityUtils.commaSeparatedStringToAuthorityList(jwtUtility.getAuthoritesFromToken(jwt)));
+				Authentication authentication = new UsernamePasswordAuthenticationToken(userName, null, AuthorityUtils
+						.commaSeparatedStringToAuthorityList(jwtUtility.getCommaSeparatedAuthoritesFromToken(jwt)));
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 		}
@@ -45,6 +45,6 @@ public class JWTValidationFilter extends OncePerRequestFilter {
 
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
-		return request.getServletPath().equals("api/auth/login");
+		return request.getServletPath().equals("/api/auth/login");
 	}
 }

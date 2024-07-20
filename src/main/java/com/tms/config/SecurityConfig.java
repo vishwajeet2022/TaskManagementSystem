@@ -27,19 +27,16 @@ public class SecurityConfig {
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-
 		httpSecurity.securityContext(contextConfig -> contextConfig.requireExplicitSave(false))
 				.sessionManagement(
 						sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.csrf(csrf -> csrf.disable()).cors(cors -> cors.disable())
-				.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure())
 				.addFilterBefore(new JWTValidationFilter(jwtUtility), UsernamePasswordAuthenticationFilter.class)
 				.addFilterAfter(new JWTGenerationFilter(jwtUtility), BasicAuthenticationFilter.class)
-				.authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/api/auth/**")
+				.authorizeHttpRequests(request -> request.requestMatchers("/users/**","/tasks/**").hasAnyRole("USER", "ADMIN").requestMatchers("/api/auth/**")
 						.permitAll().anyRequest().authenticated())
 				.httpBasic(withDefaults()).formLogin(withDefaults())
 				.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
-
 		return httpSecurity.build();
 
 	}

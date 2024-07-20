@@ -37,13 +37,9 @@ public class UserController {
 	@GetMapping("/users")
 	public ResponseEntity<?> getAllUsers() {
 		List<TMSUser> allUsers = tmsApplicationService.getAllUsers();
-		if (allUsers != null && !allUsers.isEmpty())
-			return new ResponseEntity<>(allUsers, HttpStatus.OK);
-		else
-			throw new BusinessException(List.of(new ErrorModel(HttpStatus.NOT_FOUND.value(), "USER NOT FOUND")));
+		return new ResponseEntity<>(allUsers, HttpStatus.OK);
 	}
 
-	
 	@GetMapping("/users/{userId}")
 	public ResponseEntity<?> getUser(@PathVariable(required = true) Long userId) {
 		TMSUser userDetails = tmsApplicationService.getUser(userId);
