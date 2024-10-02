@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,6 +19,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import com.tms.filter.JWTGenerationFilter;
 import com.tms.filter.JWTValidationFilter;
+import static //
+org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
 
 @Configuration
 public class SecurityConfig {
@@ -33,10 +36,11 @@ public class SecurityConfig {
 				.csrf(csrf -> csrf.disable()).cors(cors -> cors.disable())
 				.addFilterBefore(new JWTValidationFilter(jwtUtility), UsernamePasswordAuthenticationFilter.class)
 				.addFilterAfter(new JWTGenerationFilter(jwtUtility), BasicAuthenticationFilter.class)
-				.authorizeHttpRequests(request -> request.requestMatchers("/users/**","/tasks/**").hasAnyRole("USER", "ADMIN").requestMatchers("/api/auth/**")
-						.permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(request -> request.requestMatchers("/users/**", "/tasks/**")
+						.hasAnyRole("USER", "ADMIN").requestMatchers("/api/auth/register").permitAll()
+						.requestMatchers(toH2Console()).permitAll().anyRequest().authenticated())
 				.httpBasic(withDefaults()).formLogin(withDefaults())
-				.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
+				.headers(headers -> headers.frameOptions(FrameOptionsConfig::disable));
 		return httpSecurity.build();
 
 	}

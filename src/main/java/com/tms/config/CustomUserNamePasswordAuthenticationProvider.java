@@ -10,6 +10,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/*
+ * IF YOU DONT WANT CUSTOM AUTHENTICAN PROVIDER THEN 
+ * 1. MAKE /api/login public
+ * 2. create a simple service which does thhe same authentication 
+ * 3.in the controller you can call the auth service and the username password will be in requestbody instead of header
+ */
 @Component
 public class CustomUserNamePasswordAuthenticationProvider implements AuthenticationProvider {
 

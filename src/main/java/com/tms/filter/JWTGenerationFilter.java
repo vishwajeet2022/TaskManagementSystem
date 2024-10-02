@@ -1,5 +1,7 @@
 package com.tms.filter;
 
+import java.io.IOException;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -8,6 +10,7 @@ import com.tms.apputil.TMSConstants;
 import com.tms.config.JWTUtility;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,7 +24,7 @@ public class JWTGenerationFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 		String jwt = null;
 		try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -30,6 +33,8 @@ public class JWTGenerationFilter extends OncePerRequestFilter {
 			System.out.println(e.toString());
 		}
 		response.addHeader(TMSConstants.AUTHORIZATION_HEADER, TMSConstants.BEARER + jwt);
+		filterChain.doFilter(request, response);
+
 	}
 
 	@Override
