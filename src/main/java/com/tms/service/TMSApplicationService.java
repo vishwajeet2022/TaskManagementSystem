@@ -1,4 +1,4 @@
-package com.tms.Service;
+package com.tms.service;
 
 import java.util.ArrayList;
 import java.util.List;

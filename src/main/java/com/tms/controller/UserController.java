@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tms.Service.TMSApplicationService;
 import com.tms.exception.BusinessException;
 import com.tms.exception.ErrorModel;
 import com.tms.model.TMSUser;
+import com.tms.service.TMSApplicationService;
 
 import jakarta.validation.Valid;
 

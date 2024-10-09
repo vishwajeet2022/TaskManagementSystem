@@ -25,7 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		// TODO Auto-generated method stub
 		String password = null;
 		List<GrantedAuthority> authorties = null;
 		Optional<TMSUser> optional = userRepository.findByEmail(email);
