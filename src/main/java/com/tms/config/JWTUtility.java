@@ -40,13 +40,42 @@ public class JWTUtility implements Serializable {
 		this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 	}
 
-	public String getUsernameFromToken(String token) {
-		return getClaimFromToken(token, Claims::getSubject);
+	public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+		final Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+		return claimsResolver.apply(claims);
+	}
+
+	public String doGenerateToken(String userName, Collection<? extends GrantedAuthority> authorties) {
+		return Jwts.builder().issuer("tms.com").subject(userName)
+				.claim("authorities", this.populateAuthoritiesInJWT(authorties)).issuedAt(new Date())
+				.expiration(new Date(new Date().getTime() + expiration)).signWith(secretKey).compact();
+	}
+
+	private String populateAuthoritiesInJWT(Collection<? extends GrantedAuthority> authorties) {
+		String auth = "";
+		for (GrantedAuthority authority : authorties) {
+			auth = auth + authority.getAuthority();
+		}
+		return String.join(",", auth);
+	}
+
+	// validate token
+	public Boolean validateToken(String token, String username) {
+		final String usernamefromToken = getClaimFromToken(token, Claims::getSubject);
+		return (username.equals(usernamefromToken) && !isTokenExpired(token));
+	}
+
+	// check if the token has expired
+	// retrieve expiration date from jwt token
+	private Boolean isTokenExpired(String token) {
+		final Date expiration = getClaimFromToken(token, Claims::getExpiration);
+		return expiration.before(new Date());
 	}
 
 	public String getCommaSeparatedAuthoritesFromToken(String token) {
-		String authoritySting = (String) getAllClaimsFromToken(token).get("authorities");
 		String authorities = "";
+		String authoritySting = getClaimFromToken(token, claims -> claims.get("authorities", String.class));
+		;
 		for (AuthorityCode authCode : Authority.AuthorityCode.values()) {
 			if (authoritySting.contains(authCode.toString())) {
 				authorities = authorities + authCode.toString() + ",";
@@ -63,46 +92,4 @@ public class JWTUtility implements Serializable {
 		return authorities;
 	}
 
-	// retrieve expiration date from jwt token
-	public Date getExpirationDateFromToken(String token) {
-		return getClaimFromToken(token, Claims::getExpiration);
-	}
-
-	public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-		final Claims claims = getAllClaimsFromToken(token);
-		return claimsResolver.apply(claims);
-	}
-
-	// for retrieving any information from token we will need the secret key
-	private Claims getAllClaimsFromToken(String token) {
-		return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-	}
-
-	// check if the token has expired
-	private Boolean isTokenExpired(String token) {
-		final Date expiration = getExpirationDateFromToken(token);
-		return expiration.before(new Date());
-	}
-
-	public String doGenerateToken(String userName, Collection<? extends GrantedAuthority> authorties) {
-		return Jwts.builder().issuer("tms.com").subject(userName)
-				.claim("authorities", this.populateAuthoritiesInJWT(authorties)).issuedAt(new Date())
-				.expiration(new Date(new Date().getTime() + expiration)).signWith(secretKey).compact();
-	}
-
-	private String populateAuthoritiesInJWT(Collection<? extends GrantedAuthority> authorties) {
-
-		String auth = "";
-		for (GrantedAuthority authority : authorties) {
-			auth = auth + authority.getAuthority();
-		}
-		return String.join(",", auth);
-	}
-
-	// validate token
-	public Boolean validateToken(String token, String username) {
-
-		final String usernamefromToken = getUsernameFromToken(token);
-		return (username.equals(usernamefromToken) && !isTokenExpired(token));
-	}
 }

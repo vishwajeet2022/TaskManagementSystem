@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.tms.apputil.TMSConstants;
 import com.tms.config.JWTUtility;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +33,7 @@ public class JWTValidationFilter extends OncePerRequestFilter {
 		String header = request.getHeader(TMSConstants.AUTHORIZATION_HEADER);
 		if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
 			String jwt = header.substring(7);
-			String userName = jwtUtility.getUsernameFromToken(jwt);
+			String userName = jwtUtility.getClaimFromToken(jwt, Claims::getSubject);
 			if (jwtUtility.validateToken(jwt, userName)) {
 
 				Authentication authentication = new UsernamePasswordAuthenticationToken(userName, null, AuthorityUtils
